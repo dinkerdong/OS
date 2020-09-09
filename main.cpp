@@ -5,6 +5,8 @@
 
 using namespace std;
 
+// static int time = 5;
+
 bool SBJ_compare(process p1, process p2)
 {
 	if (p1.tickets < p2.tickets) {
@@ -16,10 +18,19 @@ bool SBJ_compare(process p1, process p2)
 	}
 }
 
-void print_process(vector<process> list)
+void print_process(process& p)
+{
+	cout << p.id;
+	cout << " " << p.arrival;
+	cout << " " << p.priority;
+	cout << " " << p.age;
+	cout << " " << p.tickets << endl;
+}
+
+void print_processes(vector<process>& list)
 {
 	for (int i = 0; i < list.size(); i++) {
-		cout << list[i].id << " " << list[i].arrival << " " << list[i].priority << " " << list[i].age << " " << list[i].tickets << endl;
+		print_process(list.at(i));
 	}
 }
 
@@ -35,7 +46,15 @@ int main()
 		queue2.push_back(temp);
 	}
 
+	// TESTING
+	cout << "before sort" << endl;
+	print_processes(queue2);
+
 	stable_sort(queue2.begin(), queue2.end(), SBJ_compare);
+
+	// TESTING
+	cout << "after sort" << endl;
+	print_processes(queue2);
 
 	freopen("output.txt", "w", stdin);
 
