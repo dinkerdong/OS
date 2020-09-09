@@ -5,13 +5,24 @@
 
 using namespace std;
 
-// static int time = 5;
+const int timeUnit = 5;
 
-bool SBJ_compare(process p1, process p2)
+// Compares processes in queue 2 ONLY
+// If a process has 
+bool SBJ_compare(const process& p1, const process& p2)
 {
 	if (p1.tickets < p2.tickets) {
 		return true;
 	} else if (p1.tickets == p2.tickets && p1.arrival <= p2.arrival) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool arrival_compare(const process& p1, const process& p2)
+{
+	if (p1.arrival < p2.arrival) {
 		return true;
 	} else {
 		return false;
@@ -53,7 +64,13 @@ int main()
 	stable_sort(queue2.begin(), queue2.end(), SBJ_compare);
 
 	// TESTING
-	cout << "after sort" << endl;
+	// cout << "after SJF sort" << endl;
+	// print_processes(queue2);
+
+	// stable_sort(queue2.begin(), queue2.end(), arrival_compare);
+
+	// TESTING
+	cout << "after arrival sort" << endl;
 	print_processes(queue2);
 
 	freopen("output.txt", "w", stdin);
