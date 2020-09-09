@@ -13,6 +13,8 @@ class process
 		int priority;
 		int age;
 		int tickets;
+
+		void print_process();
 };
 
 #endif//TICKET_H
