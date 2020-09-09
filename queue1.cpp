@@ -46,3 +46,11 @@ void queue1::add_to_queue1(process new_process)
     }
 }
 
+bool queue1::is_empty()
+{
+    if (subqueue1.empty() && subqueue2.empty() && subqueue3.empty() {
+        return true
+    }
+
+    return false;
+}

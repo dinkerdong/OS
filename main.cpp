@@ -45,7 +45,7 @@ void print_processes(vector<process>& list)
 	}
 }
 
-// Should print the results after all tickets have been processed.
+// Should print the results after all customers have been processed.
 // TO-DO: Make the vector global?
 void output(vector<process>& list)
 {
@@ -64,12 +64,15 @@ queue<process> vector_to_queue(vector<process> list)
 	return new_queue;
 }
 
+// Adds customer in input queue to queue 1 and queue 2.
+// It does NOT add customers to these queues if current_time < process.arrival
+// as a customer  would be processed before it has arrived.
 void add_to_queues(queue<process>& input)
 {
 	process temp = input.front();
 
 	// keep adding to queues until current_time < arrival of next added ticket
-	// i.e. only add processes which can be processed at the current time
+	// i.e. only add processes which can be processed at this point in time
 	while (current_time <= temp.arrival && !input.empty()) {
 		if (temp.priority < 4) {
 			q1.add_to_queue1(temp);
@@ -83,12 +86,44 @@ void add_to_queues(queue<process>& input)
 	}
 }
 
-// Processes all the tickets in the input queue
+// Process customers in queue 1 ONLY
+void process_queue1()
+{
+	while (!q1.is_empty()) {
+		if (!q1.subqueue1.empty()) {
+			
+		}
+
+		if (!q1.subqueue2.empty()) {
+
+		}
+
+		if (!q1.subqueue3.empty()) {
+
+		}
+	}
+}
+
+// Processes all the customers in queue 1 and queue 2
+void process_queues()
+{
+	if (!q1.is_empty()) {
+		process_queue1();
+	}
+}
+
+// Processes all the customers in the input queue
 void process_tickets(queue<process>& input)
 {
 	while (!input.empty()) {
 		add_to_queues(input);
+
+		// process all customers at this point in time
 	}
+
+	// POSSIBLY need to do a while-loop here, which keeps looping
+	// until q1 and q2 are empty.
+	// At that point, we can say all customers have been processed.
 }
 
 int main()
