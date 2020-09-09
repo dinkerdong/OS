@@ -7,6 +7,10 @@
 
 using namespace std;
 
+const int time_unit = 5;
+static int current_time = 0;
+static queue1 q1;
+
 /*
 Used for sorting queue 2. 
 Compares processes in queue 2 ONLY
@@ -46,7 +50,6 @@ void print_processes(vector<process>& list)
 void output(vector<process>& list)
 {
 	cout << "name   arrival   end   ready   running   waiting" << endl;
-	
 	// NEED A FUNCTION WHICH CORRECTLY PRINTS THE RESULTS IN THE ABOVE ORDER
 }
 
@@ -61,31 +64,59 @@ queue<process> vector_to_queue(vector<process> list)
 	return new_queue;
 }
 
+void add_to_queues(queue<process>& input)
+{
+	process temp = input.front();
+
+	// keep adding to queues until current_time < arrival of next added ticket
+	// i.e. only add processes which can be processed at the current time
+	while (current_time <= temp.arrival && !input.empty()) {
+		if (temp.priority < 4) {
+			q1.add_to_queue1(temp);
+		} else {
+			// add to queue2
+		}
+
+		input.pop();
+
+		if (!input.empty()) temp = input.front();
+	}
+}
+
+// Processes all the tickets in the input queue
+void process_tickets(queue<process>& input)
+{
+	while (!input.empty()) {
+		add_to_queues(input);
+	}
+}
+
 int main()
 {
 	int total;
-	process temp;
 	vector<process> input;
+
+	string id, arrival, priority, age, tickets;
 
 	freopen("input.txt", "r", stdin);
 
-	while(cin >> temp.id >> temp.arrival >> temp.priority >> temp.age >> temp.tickets) {
-		input.push_back(temp);
+	while(cin >> id >> arrival >> priority >> age >> tickets) {
+		input.push_back(process(id, stoi(arrival), stoi(priority), stoi(age), stoi(tickets)));
 	}
 
-	// TESTING
-	cout << "before sort" << endl;
-	print_processes(input);
-
+	// Sorts input by arrival
 	stable_sort(input.begin(), input.end(), arrival_compare);
 
-	// TESTING
-	cout << "after arrival sort" << endl;
-	print_processes(input);
-
+	// Queue is in order of arrival
+	// By end of program, this queue should be empty.
 	queue<process> input_queue = vector_to_queue(input);
+
+	// TESTING
 	cout << "printing queue of input" << endl;
 	print_subqueue(input_queue);
+
+	process_tickets(input_queue);
+	q1.print_queue1();
 
 	freopen("output.txt", "w", stdin);
 

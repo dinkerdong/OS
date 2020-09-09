@@ -6,7 +6,7 @@
 class process
 {
 	public:
-		process();
+		process(std::string new_id, int new_arrival, int new_priority, int new_age, int new_tickets);
 
 		std::string id;
 		int arrival;

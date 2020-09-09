@@ -19,8 +19,13 @@ void print_subqueue(queue<process> subqueue)
 // Printed in order of priority.
 void queue1::print_queue1()
 {
+    cout << "Queue 1" << endl;
     print_subqueue(subqueue1);
+
+    cout << "Queue 2" << endl;
     print_subqueue(subqueue2);
+
+    cout << "Queue 3" << endl;
     print_subqueue(subqueue3);
 }
 
@@ -37,6 +42,7 @@ void queue1::add_to_queue1(process new_process)
     } else {
         cout << "***SOMETHING IS WRONG***" << endl;
         cout << "added invalid process to queue1" << endl;
+        cout << "Caused by priority " << new_process.priority << endl; 
     }
 }
 
