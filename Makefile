@@ -1,9 +1,9 @@
 input = input.txt
 
-all: main 
+all: main
 	
-main: main.cpp ticket.cpp
-	g++ -o main main.cpp ticket.cpp
+main: main.cpp ticket.cpp queue1.cpp
+	g++ -o main main.cpp ticket.cpp queue1.cpp
 
 run:
-	./main $(files)
+	./main $(input)
