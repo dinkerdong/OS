@@ -25,17 +25,44 @@ void print_process(vector<process> list)
 
 int main()
 {
-	int total;
+	int total = 0;
 	process temp;
 	vector<process> queue2;
 
 	freopen("input.txt", "r", stdin);
 
 	while(cin >> temp.id >> temp.arrival >> temp.priority >> temp.age >> temp.tickets) {
-		queue2.push_back(temp);
+		if (temp.priority >= 4) {
+			if (temp.arrival == 0) {
+				queue2.push_back(temp);
+			} else {
+				waiting.push_back(temp);
+			}
+		}
 	}
 
 	stable_sort(queue2.begin(), queue2.end(), SBJ_compare);
+
+	while(0) {
+		queue1.arrival_check(total);
+
+		while (queue2.age_check() && queue1.arrival_check()) {
+			queue2[0].tickets -= 1;
+			queue2.age();	
+			total += 5;
+
+			if (queue2[0].tickets == 0) {
+				queue2.erase(queue2.begin());
+				if (queue2.arrival_check(total)) {
+					stable_sort(queue2.begin(), queue2.end(), SBJ_compare);
+				}
+			}
+		}
+
+		queue1.push_back(queue2.promote());
+	}
+
+
 
 	freopen("output.txt", "w", stdin);
 
