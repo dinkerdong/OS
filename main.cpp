@@ -45,6 +45,8 @@ int main()
 
 	while(0) {
 		queue1.arrival_check(total);
+		queue1.process();
+		queue1.demote();
 
 		while (queue2.age_check() && queue1.arrival_check()) {
 			queue2[0].tickets -= 1;
