@@ -2,5 +2,5 @@
 
 all: main 
 	
-main: main.cpp ticket.cpp
-	g++ -o main main.cpp ticket.cpp
+main: main.cpp ticket.cpp queue2.cpp
+	g++ -o main main.cpp ticket.cpp queue2.cpp
