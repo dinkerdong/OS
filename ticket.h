@@ -13,6 +13,7 @@ class process
 		int priority;
 		int age;
 		int tickets;
+		int promote_time;
 };
 
 #endif//TICKET_H
