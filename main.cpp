@@ -86,20 +86,53 @@ void add_to_queues(queue<process>& input)
 	}
 }
 
+void process_subqueue1() 
+{
+    if (process_customer(q1.subqueue1.front(), current_time)) {
+        q1.subqueue1.pop();
+    } else {
+        process temp = q1.subqueue1.front();
+        q1.subqueue1.pop();
+        q1.subqueue1.push(temp);
+    }
+}
+
+void process_subqueue2() 
+{
+    if (process_customer(q1.subqueue2.front(), current_time)) {
+        q1.subqueue2.pop();
+    } else {
+        process temp = q1.subqueue2.front();
+        q1.subqueue2.pop();
+        q1.subqueue2.push(temp);
+    }
+}
+
+void process_subqueue3() 
+{
+    if (process_customer(q1.subqueue3.front(), current_time)) {
+        q1.subqueue3.pop();
+    } else {
+        process temp = q1.subqueue3.front();
+        q1.subqueue3.pop();
+        q1.subqueue3.push(temp);
+    }
+}
+
 // Process customers in queue 1 ONLY
 void process_queue1()
 {
 	while (!q1.is_empty()) {
 		if (!q1.subqueue1.empty()) {
-			
+			process_subqueue1();	
 		}
 
 		if (!q1.subqueue2.empty()) {
-
+			process_subqueue2();
 		}
 
 		if (!q1.subqueue3.empty()) {
-
+			process_subqueue3();
 		}
 	}
 }
@@ -119,6 +152,7 @@ void process_tickets(queue<process>& input)
 		add_to_queues(input);
 
 		// process all customers at this point in time
+		process_queues();
 	}
 
 	// POSSIBLY need to do a while-loop here, which keeps looping
@@ -149,9 +183,9 @@ int main()
 	// TESTING
 	cout << "printing queue of input" << endl;
 	print_subqueue(input_queue);
+	cout << endl;
 
 	process_tickets(input_queue);
-	q1.print_queue1();
 
 	freopen("output.txt", "w", stdin);
 

@@ -19,3 +19,13 @@ void process::print_process()
 	cout << " " << age;
 	cout << " " << tickets << endl;
 }
+
+void process::print_details()
+{
+    cout << id;
+    cout << " " << arrival;
+    cout << " " << end;
+    cout << " " << ready;
+    cout << " " << running;
+    cout << " " << waiting << endl;
+}

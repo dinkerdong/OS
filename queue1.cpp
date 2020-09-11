@@ -48,8 +48,51 @@ void queue1::add_to_queue1(process new_process)
 
 bool queue1::is_empty()
 {
-    if (subqueue1.empty() && subqueue2.empty() && subqueue3.empty() {
-        return true
+    if (subqueue1.empty() && subqueue2.empty() && subqueue3.empty()) {
+        return true;
+    }
+
+    return false;
+}
+
+bool process_customer(process& customer, int& current_time)
+{
+    int weighted_time_quantum = (10 - customer.priority) * 10;
+    int tickets_processed = weighted_time_quantum/time_unit;
+
+    customer.how_many_processes++;
+
+    if (!customer.is_processed) {
+        customer.ready = current_time;
+        customer.is_processed = true;
+    } else {
+        customer.waiting += current_time - customer.last_time_processed;
+    }
+
+    if (customer.tickets <= tickets_processed) {
+        customer.running += customer.tickets * time_unit;
+        current_time += customer.tickets * time_unit;
+
+        customer.tickets = 0;
+        
+        customer.end = current_time;
+        customer.last_time_processed = current_time;
+
+        cout << "Finished processing!" << endl;
+        customer.print_details();
+        return true;
+    } else {
+        customer.running += tickets_processed * time_unit;
+        current_time += tickets_processed * time_unit;
+
+        customer.last_time_processed = current_time;
+
+        customer.tickets -= tickets_processed;
+    }
+
+    if (customer.how_many_processes == 2) {
+        customer.how_many_processes = 0;
+        customer.priority++;
     }
 
     return false;

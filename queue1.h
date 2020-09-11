@@ -16,8 +16,13 @@ struct queue1
     void print_queue1();
     void add_to_queue1(process new_process);
     bool is_empty();
+
+    void process_subqueue1();
+    void process_subqueue2();
+    void process_subqueue3();
 };
 
 void print_subqueue(std::queue<process>);
+bool process_customer(process&, int&);
 
 #endif
