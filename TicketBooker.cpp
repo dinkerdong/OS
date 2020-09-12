@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <queue>
+#include <string>
 
 using namespace std;
 
@@ -113,8 +114,7 @@ void queue1::add_to_queue1(process new_process)
     } else if (new_process.priority == 3) {
         subqueue3.push(new_process);
     } else {
-        cout << "***SOMETHING IS WRONG***" << endl;
-        cout << "added invalid process to queue1" << endl;
+        cout << "***Q1 - SOMETHING IS WRONG: Added invalid process***" << endl;
         cout << "Caused by priority " << new_process.priority << endl; 
     }
 }
@@ -128,11 +128,16 @@ bool queue1::is_empty()
     return false;
 }
 
+static int current_time = 0;
+static queue<process> input;
+static queue1 q1;
+
 // Process a customer with queue 1 logic, i.e. Weighted Round Robin.
 // Returns true if all of the customer's tickets are processed.
 // Else, returns false.
-bool process_customer(process& customer, int& current_time)
+bool process_customer(process& customer)
 {
+
     int weighted_time_quantum = (10 - customer.priority) * 10;
     int tickets_processed = weighted_time_quantum/time_unit;
 
@@ -154,11 +159,13 @@ bool process_customer(process& customer, int& current_time)
         customer.running += customer.tickets * time_unit;
         current_time += customer.tickets * time_unit;
 
+
         customer.tickets = 0;
         
         customer.end = current_time;
         customer.last_time_processed = current_time;
 
+		// cout << "finished processing" << endl;
         customer.print_details();
         return true;
     } else {
@@ -177,9 +184,6 @@ bool process_customer(process& customer, int& current_time)
 
     return false;
 }
-
-static int current_time = 0;
-static queue1 q1;
 
 /*
 Used for sorting queue 2. 
@@ -228,11 +232,20 @@ queue<process> vector_to_queue(vector<process> list)
 
 // Adds customer in input queue to queue 1 and queue 2.
 // It stops adding customers to these queues when current_time < process.arrival.
-void add_to_queues(queue<process>& input)
+void add_to_queues()
 {
+	if (input.empty()) return;
+
 	process temp = input.front();
 
-	while (!input.empty() && current_time <= temp.arrival) {
+	while ((!input.empty()) && temp.arrival <= current_time) {
+
+		// TESTING
+		// cout << "added at: " << current_time << endl; 
+
+		// cout << "added at " << current_time << endl;
+		// temp.print_process();
+
 		if (temp.priority < 4) {
 			q1.add_to_queue1(temp);
 		} else {
@@ -241,7 +254,9 @@ void add_to_queues(queue<process>& input)
 
 		input.pop();
 
-		if (!input.empty()) temp = input.front();
+		if (!input.empty()) {
+			temp = input.front();
+		}
 	}
 }
 
@@ -254,33 +269,40 @@ it should be added to the appropriate subqueue.
 
 void process_subqueue1() 
 {
-    if (process_customer(q1.subqueue1.front(), current_time)) {
+    if (process_customer(q1.subqueue1.front())) {
         q1.subqueue1.pop();
     } else {
         process temp = q1.subqueue1.front();
         q1.subqueue1.pop();
+		add_to_queues();
+
+		// cout << "after adding" << endl;
+		// q1.print_queue1();
         q1.add_to_queue1(temp);
     }
 }
 
 void process_subqueue2() 
 {
-    if (process_customer(q1.subqueue2.front(), current_time)) {
+    if (process_customer(q1.subqueue2.front())) {
         q1.subqueue2.pop();
     } else {
         process temp = q1.subqueue2.front();
         q1.subqueue2.pop();
+		add_to_queues();
+
         q1.add_to_queue1(temp);
     }
 }
 
 void process_subqueue3() 
 {
-    if (process_customer(q1.subqueue3.front(), current_time)) {
+    if (process_customer(q1.subqueue3.front())) {
         q1.subqueue3.pop();
     } else {
         process temp = q1.subqueue3.front();
         q1.subqueue3.pop();
+		add_to_queues();
 
 		// This should be another function, which adds to queue 2
 		// if new priority > 3.
@@ -291,16 +313,16 @@ void process_subqueue3()
 // Process customers in queue 1 ONLY
 void process_queue1()
 {
-	while (!q1.is_empty()) {
-		while (!q1.subqueue1.empty()) {
-			process_subqueue1();	
+	if (!q1.is_empty()) {
+		if (!q1.subqueue1.empty()) {
+			process_subqueue1();
 		}
 
-		while (!q1.subqueue2.empty()) {
+		if (!q1.subqueue2.empty() && (q1.subqueue1.empty())) {
 			process_subqueue2();
 		}
 
-		while (!q1.subqueue3.empty()) {
+		if (!q1.subqueue3.empty() && (q1.subqueue1.empty() && q1.subqueue2.empty())) {
 			process_subqueue3();
 		}
 	}
@@ -315,58 +337,63 @@ void process_queues()
 }
 
 // Processes all the customers in the input queue
-void process_tickets(queue<process>& input)
+void process_tickets()
 {
 	while (!input.empty()) {
-		add_to_queues(input);
+		add_to_queues();
 
-		// process all customers at this point in time
 		process_queues();
 
 		/* 
 		What if our queues are empty, but there are still customers in the input queue?
 		There are no tickets being processed, but we will be stuck in this while loop.
+		Since there is nothing to keep time "going".
 		I'm thinking there should be a check here that increments current_time, until a new
 		process from the input queue can be added to the queues.
 		*/
+
+		if (q1.is_empty()) {
+			current_time += time_unit;
+		}
 	}
 
 	// POSSIBLY need to do a while-loop here, which keeps looping
 	// until q1 and q2 are empty.
 	// At that point, we can say all customers have been processed.
+	while (!q1.is_empty()) {
+		process_queues();
+
+		// cout << "after processing" << endl;
+		// q1.print_queue1();
+	}
 }
 
-int main()
+int main(int argc, char *argv[])
 {
 	int total;
-	vector<process> input;
+	vector<process> input1;
 
 	string id, arrival, priority, age, tickets;
 
-	freopen("input.txt", "r", stdin);
+	freopen(argv[1], "r", stdin);
 
 	while(cin >> id >> arrival >> priority >> age >> tickets) {
-		input.push_back(process(id, stoi(arrival), stoi(priority), stoi(age), stoi(tickets)));
+		input1.push_back(process(id, stoi(arrival), stoi(priority), stoi(age), stoi(tickets)));
 	}
 
 	// Sorts input by arrival
-	stable_sort(input.begin(), input.end(), arrival_compare);
+	stable_sort(input1.begin(), input1.end(), arrival_compare);
 
 	// By end of program, input_queue should be empty (all customers added to queues).
-	queue<process> input_queue = vector_to_queue(input);
+	input = vector_to_queue(input1);
 
 	// TESTING
 	// cout << "printing queue of input" << endl;
-	// print_subqueue(input_queue);
+	// print_subqueue(input);
 	// cout << endl;
 
 	cout << "name arrival end ready running waiting" << endl;
-	process_tickets(input_queue);
-
-	freopen("output.txt", "w", stdin);
-
-	fclose(stdin);
-	fclose(stdout);	
+	process_tickets();
 
 	return 0;
 }
