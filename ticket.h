@@ -14,6 +14,7 @@ class process
 		int age;
 		int tickets;
 		int promote_time;
+		int proc;
 };
 
 #endif//TICKET_H

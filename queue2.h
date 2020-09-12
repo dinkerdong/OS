@@ -9,7 +9,7 @@ class queue2
 	public:
 		std::vector<process> list;
 		std::vector<process> prom;
-		bool age_check();	
+		bool age_check(int total);	
 		void age();
 		std::vector<process> promote();	
 };
