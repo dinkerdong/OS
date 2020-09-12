@@ -7,7 +7,6 @@
 
 using namespace std;
 
-const int time_unit = 5;
 static int current_time = 0;
 static queue1 q1;
 
@@ -45,14 +44,6 @@ void print_processes(vector<process>& list)
 	}
 }
 
-// Should print the results after all customers have been processed.
-// TO-DO: Make the vector global?
-void output(vector<process>& list)
-{
-	cout << "name   arrival   end   ready   running   waiting" << endl;
-	// NEED A FUNCTION WHICH CORRECTLY PRINTS THE RESULTS IN THE ABOVE ORDER
-}
-
 queue<process> vector_to_queue(vector<process> list)
 {
 	queue<process> new_queue;
@@ -65,15 +56,12 @@ queue<process> vector_to_queue(vector<process> list)
 }
 
 // Adds customer in input queue to queue 1 and queue 2.
-// It does NOT add customers to these queues if current_time < process.arrival
-// as a customer  would be processed before it has arrived.
+// It stops adding customers to these queues when current_time < process.arrival.
 void add_to_queues(queue<process>& input)
 {
 	process temp = input.front();
 
-	// keep adding to queues until current_time < arrival of next added ticket
-	// i.e. only add processes which can be processed at this point in time
-	while (current_time <= temp.arrival && !input.empty()) {
+	while (!input.empty() && current_time <= temp.arrival) {
 		if (temp.priority < 4) {
 			q1.add_to_queue1(temp);
 		} else {
@@ -86,6 +74,13 @@ void add_to_queues(queue<process>& input)
 	}
 }
 
+/* 
+The following logic applies to all subqueues of queue 1.
+If a customer has all of its tickets processed, it is removed from the queue.
+Else, it is moved to the back of queue 1. If the customer's priority number changed,
+it should be added to the appropriate subqueue.
+*/
+
 void process_subqueue1() 
 {
     if (process_customer(q1.subqueue1.front(), current_time)) {
@@ -93,7 +88,7 @@ void process_subqueue1()
     } else {
         process temp = q1.subqueue1.front();
         q1.subqueue1.pop();
-        q1.subqueue1.push(temp);
+        q1.add_to_queue1(temp);
     }
 }
 
@@ -104,7 +99,7 @@ void process_subqueue2()
     } else {
         process temp = q1.subqueue2.front();
         q1.subqueue2.pop();
-        q1.subqueue2.push(temp);
+        q1.add_to_queue1(temp);
     }
 }
 
@@ -115,7 +110,7 @@ void process_subqueue3()
     } else {
         process temp = q1.subqueue3.front();
         q1.subqueue3.pop();
-        q1.subqueue3.push(temp);
+        q1.add_to_queue1(temp);
     }
 }
 
@@ -123,15 +118,15 @@ void process_subqueue3()
 void process_queue1()
 {
 	while (!q1.is_empty()) {
-		if (!q1.subqueue1.empty()) {
+		while (!q1.subqueue1.empty()) {
 			process_subqueue1();	
 		}
 
-		if (!q1.subqueue2.empty()) {
+		while (!q1.subqueue2.empty()) {
 			process_subqueue2();
 		}
 
-		if (!q1.subqueue3.empty()) {
+		while (!q1.subqueue3.empty()) {
 			process_subqueue3();
 		}
 	}
@@ -143,6 +138,8 @@ void process_queues()
 	if (!q1.is_empty()) {
 		process_queue1();
 	}
+
+	// Process queue 2
 }
 
 // Processes all the customers in the input queue
@@ -176,15 +173,15 @@ int main()
 	// Sorts input by arrival
 	stable_sort(input.begin(), input.end(), arrival_compare);
 
-	// Queue is in order of arrival
-	// By end of program, this queue should be empty.
+	// By end of program, input_queue should be empty (all customers added to queues).
 	queue<process> input_queue = vector_to_queue(input);
 
 	// TESTING
-	cout << "printing queue of input" << endl;
-	print_subqueue(input_queue);
-	cout << endl;
+	// cout << "printing queue of input" << endl;
+	// print_subqueue(input_queue);
+	// cout << endl;
 
+	cout << "name arrival end ready running waiting" << endl;
 	process_tickets(input_queue);
 
 	freopen("output.txt", "w", stdin);

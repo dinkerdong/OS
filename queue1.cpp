@@ -55,6 +55,9 @@ bool queue1::is_empty()
     return false;
 }
 
+// Process a customer with queue 1 logic, i.e. Weighted Round Robin.
+// Returns true if all of the customer's tickets are processed.
+// Else, returns false.
 bool process_customer(process& customer, int& current_time)
 {
     int weighted_time_quantum = (10 - customer.priority) * 10;
@@ -62,6 +65,8 @@ bool process_customer(process& customer, int& current_time)
 
     customer.how_many_processes++;
 
+    // If customer has never been processed, record time it was first processed.
+    // Else, add amount of time it waited to be processed again.
     if (!customer.is_processed) {
         customer.ready = current_time;
         customer.is_processed = true;
@@ -69,6 +74,9 @@ bool process_customer(process& customer, int& current_time)
         customer.waiting += current_time - customer.last_time_processed;
     }
 
+    // If number of tickets that can be processed is greater than or equal to customer's remaining tickets,
+    // all of a customer's tickets can be processed.
+    // Else, process the number of tickets calculated using the weighted_time_quantum.
     if (customer.tickets <= tickets_processed) {
         customer.running += customer.tickets * time_unit;
         current_time += customer.tickets * time_unit;
@@ -78,7 +86,6 @@ bool process_customer(process& customer, int& current_time)
         customer.end = current_time;
         customer.last_time_processed = current_time;
 
-        cout << "Finished processing!" << endl;
         customer.print_details();
         return true;
     } else {
