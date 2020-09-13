@@ -1,3 +1,11 @@
+/* 
+Created by: Norahmat Razmi, a1724818
+			***INSERT LUKE'S NAME AND ID HERE***
+
+Contact emails: a1724818@student.adelaide.edu.au
+				***INSERT LUKE'S EMAIL HERE***
+*/
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -8,13 +16,13 @@ using namespace std;
 
 const int time_unit = 5;
 
-// Class process: these are our customers which are processed
+// process Class: represents the customers to be processed
 class process
 {
 	public:
-		process(std::string new_id, int new_arrival, int new_priority, int new_age, int new_tickets);
+		process(string new_id, int new_arrival, int new_priority, int new_age, int new_tickets);
 
-		std::string id;
+		string id;
 		int arrival;
 		int priority;
 		int age;
@@ -33,7 +41,7 @@ class process
 		void print_details() const;
 };
 
-process::process(std::string new_id, int new_arrival, int new_priority, int new_age, int new_tickets)
+process::process(string new_id, int new_arrival, int new_priority, int new_age, int new_tickets)
 {
     id = new_id;
     arrival = new_arrival;
@@ -61,12 +69,11 @@ void process::print_details() const
     cout << " " << waiting << endl;
 }
 
-// Struct queue1: this object represents queue 1
 struct queue1
 {
-    std::queue<process> subqueue1;
-    std::queue<process> subqueue2;
-    std::queue<process> subqueue3;
+    queue<process> subqueue1;
+    queue<process> subqueue2;
+    queue<process> subqueue3;
 
     void print_queue1();
     void add_to_queue1(process new_process);
@@ -77,7 +84,7 @@ struct queue1
     void process_subqueue3();
 };
 
-void print_subqueue(std::queue<process>);
+void print_subqueue(queue<process>);
 bool process_customer_q1(process&, int&);
 
 // Prints all the processes in a queue
@@ -129,46 +136,47 @@ bool queue1::is_empty()
 }
 
 // Struct queue2: this struct represents queue 2
-// Queue 2 is represented by a priority queue i.e. a min heap.
-// This min heap of customers is sorted according to number of remaining tickets.
+// Queue 2 is represented by a vector,
+// This vector of customers is sorted according to number of remaining tickets.
+// Every time a new customer is added to queue 2, the vector stable sorts itself.
 
-// Overload operator for priority queue to work with our process class
+// Overload operator for vector to work with our process class
 bool operator<(const process& a, const process& b) 
 {
-	return a.tickets > b.tickets;
+	return a.tickets < b.tickets;
 }
 
 struct queue2
 {
-    priority_queue<process> que2;
+    vector<process> que2;
 
     void print_queue2();
     void add_to_queue2(process new_process);
     bool is_empty();
 };
 
-void print_subqueue(std::queue<process>);
+void print_subqueue(queue<process>);
 bool process_customer_q1(process&, int&);
 
-// Prints all the processes in queue 1 ONLY
-// Printed in order of priority.
+// Prints all the processes in queue 2 ONLY
+// Printed according to tickets remaining, in ascending order.
 void queue2::print_queue2()
 {
 	cout << "Printing Queue2" << endl;
-	while (!que2.empty()) {
-		que2.top().print_process();
-		que2.pop();
+	for (int i = 0; i < que2.size(); i++) {
+		que2.at(i).print_process();
 	}
 
-	cout << endl;
+	// cout << endl;
 }
 
-// Adds a process of priority 1 - 3 to queue1.
-// It should be impossible to add a process with any other priority.
+// Adds a process of priority > 3 to queue2.
+// It should be impossible to add a process with any other priority, and prints an error otherwise.
 void queue2::add_to_queue2(process new_process)
 {
     if (new_process.priority > 3) {
-        que2.push(new_process);
+        que2.push_back(new_process);
+		stable_sort(que2.begin(), que2.end());
     } else {
         cout << "***Q2 - SOMETHING IS WRONG: Added invalid process***" << endl;
         cout << "Caused by priority " << new_process.priority << endl; 
@@ -235,22 +243,33 @@ bool process_customer_q1(process& customer)
     return false;
 }
 
-/*
-Used for sorting queue 2. 
-Compares processes in queue 2 ONLY
-If a process has less tickets, it should be processed first, i.e. moves ahead in the queue.
-If two processes have the same # of tickets, they should be processed according to priority.
-If two processes have the same # of tickets AND priority, they should be processed according to arrival.
-*/
-bool SBJ_compare(const process& p1, const process& p2)
+// Process a customer with queue 2 logic, i.e. Shortest Remaining Time First.
+// Returns true if all of the customer's tickets are processed.
+bool process_customer_q2(process& customer)
 {
-	if (p1.tickets < p2.tickets) {
+	if (!customer.is_processed) {
+		customer.ready = current_time;
+		customer.is_processed = true;
+	} 
+
+	customer.running += time_unit;
+	current_time += time_unit;
+	customer.tickets--;
+
+	if (customer.tickets == 0) {
+		customer.end = current_time;
+		customer.last_time_processed = current_time;
+
+		// TESTING
+		// cout << "finished processing" << endl;
+
+		customer.waiting = customer.end-customer.running-customer.ready;
+
+		customer.print_details();
 		return true;
-	} else if (p1.tickets == p2.tickets && p1.arrival <= p2.arrival) {
-		return true;
-	} else {
-		return false;
 	}
+
+	return false;
 }
 
 bool arrival_compare(const process& p1, const process& p2)
@@ -269,6 +288,7 @@ void print_processes(vector<process>& list)
 	}
 }
 
+// Only used for input vector
 queue<process> vector_to_queue(vector<process> list)
 {
 	queue<process> new_queue;
@@ -291,7 +311,7 @@ void add_to_queues()
 
 	while ((!input.empty()) && temp.arrival <= current_time) {
 
-		// TESTING
+		// // TESTING
 		// cout << "added at: " << current_time << endl; 
 		// temp.print_process();
 
@@ -350,9 +370,11 @@ void process_subqueue3()
         q1.subqueue3.pop();
 		add_to_queues();
 
-		// This should be another function, which adds to queue 2
-		// if new priority > 3.
-        q1.add_to_queue1(temp);
+		if (temp.priority < 4) {
+			q1.add_to_queue1(temp);
+		} else {
+			q2.add_to_queue2(temp);
+		}
     }
 }
 
@@ -374,11 +396,25 @@ void process_queue1()
 	}
 }
 
+void process_queue2()
+{
+	if (!q2.is_empty()) {
+		if (process_customer_q2(q2.que2.front())) {
+			q2.que2.erase(q2.que2.begin());
+		} else {
+			process temp = q2.que2.front();
+			q2.que2.erase(q2.que2.begin());
+			add_to_queues();
+
+			q2.add_to_queue2(temp);
+		}
+	}
+}
+
 void process_queues()
 {
 	process_queue1();
-
-	// Also process queue 2
+	process_queue2();
 }
 
 // Processes all the customers in the input queue
@@ -387,19 +423,16 @@ void process_tickets()
 	while (!input.empty()) {
 		add_to_queues();
 
-		// process_queues();
+		process_queues();
 
 		if (q1.is_empty() && q2.is_empty()) {
 			current_time += time_unit;
 		}
 	}
 
-	// while (!q1.is_empty() || !q2.is_empty()) {
-	// 	process_queues();
-
-	// 	// cout << "after processing" << endl;
-	// 	// q1.print_queue1();
-	// }
+	while (!q1.is_empty() || !q2.is_empty()) {
+		process_queues();
+	}
 }
 
 int main(int argc, char *argv[])
@@ -422,13 +455,15 @@ int main(int argc, char *argv[])
 	input = vector_to_queue(input1);
 
 	// TESTING
-	cout << "printing queue of input" << endl;
-	print_subqueue(input);
-	cout << endl;
+	// cout << "printing queue of input" << endl;
+	// print_subqueue(input);
+	// cout << endl;
 
 	cout << "name arrival end ready running waiting" << endl;
 	process_tickets();
-	q2.print_queue2();
+
+	// TESTING
+	// q2.print_queue2();
 
 
 	return 0;
