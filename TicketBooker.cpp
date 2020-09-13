@@ -20,13 +20,15 @@ const int time_unit = 5;
 class process
 {
 	public:
-		process(string new_id, int new_arrival, int new_priority, int new_age, int new_tickets);
+		process(string new_id, int new_arrival, int new_priority, int new_age, int new_tickets, int unique_id);
 
 		string id;
 		int arrival;
 		int priority;
 		int age;
 		int tickets;
+
+		int unique_id;
 
 		bool is_processed = false;
 		int last_time_processed = -1;
@@ -41,13 +43,14 @@ class process
 		void print_details() const;
 };
 
-process::process(string new_id, int new_arrival, int new_priority, int new_age, int new_tickets)
+process::process(string new_id, int new_arrival, int new_priority, int new_age, int new_tickets, int new_unique_id)
 {
     id = new_id;
     arrival = new_arrival;
     priority = new_priority;
     age = new_age;
     tickets = new_tickets;
+	unique_id = new_unique_id;
 }
 
 void process::print_process() const
@@ -56,7 +59,8 @@ void process::print_process() const
 	cout << " " << arrival;
 	cout << " " << priority;
 	cout << " " << age;
-	cout << " " << tickets << endl;
+	cout << " " << tickets;
+	cout << " " << how_many_processes << endl;
 }
 
 void process::print_details() const
@@ -100,13 +104,14 @@ void print_subqueue(queue<process> subqueue)
 // Printed in order of priority.
 void queue1::print_queue1()
 {
-    cout << "Queue 1" << endl;
+	cout << "Printing Queue 1" << endl;
+    cout << "Sub-Queue 1" << endl;
     print_subqueue(subqueue1);
 
-    cout << "Queue 2" << endl;
+    cout << "Sub-Queue 2" << endl;
     print_subqueue(subqueue2);
 
-    cout << "Queue 3" << endl;
+    cout << "Sub-Queue 3" << endl;
     print_subqueue(subqueue3);
 }
 
@@ -121,8 +126,8 @@ void queue1::add_to_queue1(process new_process)
     } else if (new_process.priority == 3) {
         subqueue3.push(new_process);
     } else {
-        cout << "***Q1 - SOMETHING IS WRONG: Added invalid process***" << endl;
-        cout << "Caused by priority " << new_process.priority << endl; 
+        // cout << "***Q1 - SOMETHING IS WRONG: Added invalid process***" << endl;
+        // cout << "Caused by priority " << new_process.priority << endl; 
     }
 }
 
@@ -143,7 +148,13 @@ bool queue1::is_empty()
 // Overload operator for vector to work with our process class
 bool operator<(const process& a, const process& b) 
 {
-	return a.tickets < b.tickets;
+	if (a.tickets < b.tickets) {
+		return true;
+	} else if (a.tickets == b.tickets && a.arrival < b.arrival) {
+		return true;
+	}
+
+	return false;
 }
 
 struct queue2
@@ -178,8 +189,8 @@ void queue2::add_to_queue2(process new_process)
         que2.push_back(new_process);
 		stable_sort(que2.begin(), que2.end());
     } else {
-        cout << "***Q2 - SOMETHING IS WRONG: Added invalid process***" << endl;
-        cout << "Caused by priority " << new_process.priority << endl; 
+        // cout << "***Q2 - SOMETHING IS WRONG: Added invalid process***" << endl;
+        // cout << "Caused by priority " << new_process.priority << endl; 
     }
 }
 
@@ -192,6 +203,15 @@ static int current_time = 0;
 static queue<process> input;
 static queue1 q1;
 static queue2 q2;
+
+bool compare(const process& a, const process& b)
+{
+	if (a.age < b.age) {
+		return true;
+	} else if (a.age == b.age) {
+		return a.unique_id < b.unique_id;
+	}
+}
 
 // Process a customer with queue 1 logic, i.e. Weighted Round Robin.
 // Returns true if all of the customer's tickets are processed.
@@ -212,6 +232,9 @@ bool process_customer_q1(process& customer)
         customer.waiting += current_time - customer.last_time_processed;
     }
 
+	// Holds all processes waiting to be promoted to queue 1.
+	vector<process> buffer;
+
     // If number of tickets that can be processed is greater than or equal to customer's remaining tickets,
     // all of a customer's tickets can be processed.
     // Else, process the number of tickets calculated using the weighted_time_quantum.
@@ -219,10 +242,45 @@ bool process_customer_q1(process& customer)
         customer.running += customer.tickets * time_unit;
         current_time += customer.tickets * time_unit;
 
+		for (int i = 0; i < q2.que2.size(); i++) {
+			q2.que2.at(i).age += customer.tickets * time_unit;
+		}
+
+		for (int i = 0; i < q2.que2.size(); i++) {
+			if (q2.que2.at(i).age >= 100) {
+				if (q2.que2.at(i).priority > 4) {
+					q2.que2.at(i).age -= 100;
+				} else {
+					q2.que2.at(i).age = 0;
+				}
+
+				q2.que2.at(i).priority--;
+
+				if (q2.que2.at(i).priority < 4) {
+					buffer.push_back(q2.que2.at(i));
+					q2.que2.erase(q2.que2.begin() + i);
+					i--;
+				} 
+			}
+		}
+
+		sort(buffer.begin(), buffer.end(), compare);
+
+		// cout << "I'LL BE THERE FOR YOU" << endl;
+		for (int i = 0; i < buffer.size(); i++) {
+			buffer.at(i).age = 0;
+			q1.add_to_queue1(buffer.at(i));
+		}
+
         customer.tickets = 0;
         
         customer.end = current_time;
         customer.last_time_processed = current_time;
+
+		customer.waiting = customer.end - customer.running - customer.ready;
+
+		// TESTING
+		// cout << "\nfinished processing at " << current_time << endl;
 
         customer.print_details();
         return true;
@@ -230,9 +288,43 @@ bool process_customer_q1(process& customer)
         customer.running += tickets_processed * time_unit;
         current_time += tickets_processed * time_unit;
 
+		for (int i = 0; i < q2.que2.size(); i++) {
+			q2.que2.at(i).age += tickets_processed * time_unit;
+		}
+
+		for (int i = 0; i < q2.que2.size(); i++) {
+			if (q2.que2.at(i).age >= 100) {
+				if (q2.que2.at(i).priority > 4) {
+					q2.que2.at(i).age -= 100;
+				} else {
+					q2.que2.at(i).age = 0;
+				}
+
+				q2.que2.at(i).priority--;
+
+				if (q2.que2.at(i).priority < 4) {
+					buffer.push_back(q2.que2.at(i));
+					q2.que2.erase(q2.que2.begin() + i);
+					i--;
+				} 
+			}
+		}
+
+		sort(buffer.begin(), buffer.end(), compare);
+
+		// cout << "I'LL BE THERE FOR YOU" << endl;
+		for (int i = 0; i < buffer.size(); i++) {
+			buffer.at(i).age = 0;
+			q1.add_to_queue1(buffer.at(i));
+		}
+
         customer.last_time_processed = current_time;
 
         customer.tickets -= tickets_processed;
+
+		// TESTING
+		// cout << "processed at " << current_time << endl;
+		// customer.print_process();
     }
 
     if (customer.how_many_processes == 2) {
@@ -256,14 +348,31 @@ bool process_customer_q2(process& customer)
 	current_time += time_unit;
 	customer.tickets--;
 
+	for (int i = 1; i < q2.que2.size(); i++) {
+		q2.que2.at(i).age += time_unit;
+	}
+
+	for (int i = 1; i < q2.que2.size(); i++) {
+		if (q2.que2.at(i).age >= 100) {
+			q2.que2.at(i).age = 0;
+			q2.que2.at(i).priority--;
+
+			if (q2.que2.at(i).priority < 4) {
+				q1.add_to_queue1(q2.que2.at(i));
+				q2.que2.erase(q2.que2.begin() + i);
+				i--;
+			} 
+		}
+	}
+
 	if (customer.tickets == 0) {
 		customer.end = current_time;
 		customer.last_time_processed = current_time;
 
 		// TESTING
-		// cout << "finished processing" << endl;
+		// cout << "\nfinished processing at " << current_time <<  endl;
 
-		customer.waiting = customer.end-customer.running-customer.ready;
+		customer.waiting = customer.end - customer.running - customer.ready;
 
 		customer.print_details();
 		return true;
@@ -312,7 +421,7 @@ void add_to_queues()
 	while ((!input.empty()) && temp.arrival <= current_time) {
 
 		// // TESTING
-		// cout << "added at: " << current_time << endl; 
+		// cout << "\nadded at: " << current_time << endl; 
 		// temp.print_process();
 
 		if (temp.priority < 4) {
@@ -398,7 +507,7 @@ void process_queue1()
 
 void process_queue2()
 {
-	if (!q2.is_empty()) {
+	if (!q2.is_empty() && q1.is_empty()) {
 		if (process_customer_q2(q2.que2.front())) {
 			q2.que2.erase(q2.que2.begin());
 		} else {
@@ -423,15 +532,27 @@ void process_tickets()
 	while (!input.empty()) {
 		add_to_queues();
 
-		process_queues();
-
 		if (q1.is_empty() && q2.is_empty()) {
 			current_time += time_unit;
 		}
+
+		// TESTING
+		cout << "\n1. As of: " << current_time << endl;
+		q1.print_queue1();
+		q2.print_queue2();
+		cout << endl;
+
+		process_queues();
 	}
 
 	while (!q1.is_empty() || !q2.is_empty()) {
 		process_queues();
+
+		// TESTING
+		cout << "\n2. As of: " << current_time << endl;
+		q1.print_queue1();
+		q2.print_queue2();
+		cout << endl;
 	}
 }
 
@@ -444,8 +565,11 @@ int main(int argc, char *argv[])
 
 	freopen(argv[1], "r", stdin);
 
+	int i = 0;
+
 	while(cin >> id >> arrival >> priority >> age >> tickets) {
-		input1.push_back(process(id, stoi(arrival), stoi(priority), stoi(age), stoi(tickets)));
+		input1.push_back(process(id, stoi(arrival), stoi(priority), stoi(age), stoi(tickets), i));
+		i++;
 	}
 
 	// Sorts input by arrival
