@@ -1,9 +1,9 @@
 /* 
 Created by: Norahmat Razmi, a1724818
-			***INSERT LUKE'S NAME AND ID HERE***
+	    Byung hun Hyun, a1732470
 
 Contact emails: a1724818@student.adelaide.edu.au
-				***INSERT LUKE'S EMAIL HERE***
+		a1732470@student.adelaide.edu.au
 */
 
 #include <iostream>
