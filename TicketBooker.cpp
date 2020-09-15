@@ -12,9 +12,9 @@ Contact emails: a1724818@student.adelaide.edu.au
 #include <queue>
 #include <string>
 
-using namespace std;
+#define TIME_UNIT 5
 
-const int time_unit = 5;
+using namespace std;
 
 // process Class: represents the customers to be processed
 class process
@@ -104,7 +104,7 @@ void print_subqueue(queue<process> subqueue)
 // Printed in order of priority.
 void queue1::print_queue1()
 {
-	cout << "Printing Queue 1" << endl;
+    cout << "Printing Queue 1" << endl;
     cout << "Sub-Queue 1" << endl;
     print_subqueue(subqueue1);
 
@@ -219,7 +219,7 @@ bool compare(const process& a, const process& b)
 bool process_customer_q1(process& customer)
 {
     int weighted_time_quantum = (10 - customer.priority) * 10;
-    int tickets_processed = weighted_time_quantum/time_unit;
+    int tickets_processed = weighted_time_quantum/TIME_UNIT;
 
     customer.how_many_processes++;
 
@@ -239,16 +239,16 @@ bool process_customer_q1(process& customer)
     // all of a customer's tickets can be processed.
     // Else, process the number of tickets calculated using the weighted_time_quantum.
     if (customer.tickets <= tickets_processed) {
-        customer.running += customer.tickets * time_unit;
-        current_time += customer.tickets * time_unit;
+        customer.running += customer.tickets * TIME_UNIT;
+        current_time += customer.tickets * TIME_UNIT;
 
 		for (int i = 0; i < q2.que2.size(); i++) {
-			q2.que2.at(i).age += customer.tickets * time_unit;
+			q2.que2.at(i).age += TIME_UNIT;
 		}
 
 		for (int i = 0; i < q2.que2.size(); i++) {
 			if (q2.que2.at(i).age >= 100) {
-				if (q2.que2.at(i).priority > 4) {
+				if (q2.que2.at(i).age > 100) {
 					q2.que2.at(i).age -= 100;
 				} else {
 					q2.que2.at(i).age = 0;
@@ -256,15 +256,15 @@ bool process_customer_q1(process& customer)
 
 				q2.que2.at(i).priority--;
 
-				if (q2.que2.at(i).priority < 4) {
+				if (q2.que2.at(i).priority <= 3) {
 					buffer.push_back(q2.que2.at(i));
 					q2.que2.erase(q2.que2.begin() + i);
 					i--;
 				} 
+
+				stable_sort(buffer.begin(), buffer.end(), compare);
 			}
 		}
-
-		sort(buffer.begin(), buffer.end(), compare);
 
 		// cout << "I'LL BE THERE FOR YOU" << endl;
 		for (int i = 0; i < buffer.size(); i++) {
@@ -285,16 +285,16 @@ bool process_customer_q1(process& customer)
         customer.print_details();
         return true;
     } else {
-        customer.running += tickets_processed * time_unit;
-        current_time += tickets_processed * time_unit;
+        customer.running += tickets_processed * TIME_UNIT;
+        current_time += tickets_processed * TIME_UNIT;
 
 		for (int i = 0; i < q2.que2.size(); i++) {
-			q2.que2.at(i).age += tickets_processed * time_unit;
+			q2.que2.at(i).age += tickets_processed * TIME_UNIT;
 		}
 
 		for (int i = 0; i < q2.que2.size(); i++) {
 			if (q2.que2.at(i).age >= 100) {
-				if (q2.que2.at(i).priority > 4) {
+				if (q2.que2.at(i).age > 100) {
 					q2.que2.at(i).age -= 100;
 				} else {
 					q2.que2.at(i).age = 0;
@@ -302,11 +302,13 @@ bool process_customer_q1(process& customer)
 
 				q2.que2.at(i).priority--;
 
-				if (q2.que2.at(i).priority < 4) {
+				if (q2.que2.at(i).priority <= 3) {
 					buffer.push_back(q2.que2.at(i));
 					q2.que2.erase(q2.que2.begin() + i);
 					i--;
 				} 
+
+				stable_sort(buffer.begin(), buffer.end(), compare);
 			}
 		}
 
@@ -344,24 +346,31 @@ bool process_customer_q2(process& customer)
 		customer.is_processed = true;
 	} 
 
-	customer.running += time_unit;
-	current_time += time_unit;
+	customer.running += TIME_UNIT;
+	current_time += TIME_UNIT;
 	customer.tickets--;
 
 	for (int i = 1; i < q2.que2.size(); i++) {
-		q2.que2.at(i).age += time_unit;
+		q2.que2.at(i).age += TIME_UNIT;
 	}
 
-	for (int i = 1; i < q2.que2.size(); i++) {
+	for (int i = 0; i < q2.que2.size(); i++) {
 		if (q2.que2.at(i).age >= 100) {
-			q2.que2.at(i).age = 0;
+			if (q2.que2.at(i).age > 100) {
+				q2.que2.at(i).age -= 100;
+			} else {
+				q2.que2.at(i).age = 0;
+			}
+
 			q2.que2.at(i).priority--;
 
-			if (q2.que2.at(i).priority < 4) {
+			if (q2.que2.at(i).priority <= 3) {
 				q1.add_to_queue1(q2.que2.at(i));
 				q2.que2.erase(q2.que2.begin() + i);
 				i--;
 			} 
+
+			stable_sort(q2.que2.begin(), q2.que2.end(), compare);
 		}
 	}
 
@@ -421,7 +430,7 @@ void add_to_queues()
 	while ((!input.empty()) && temp.arrival <= current_time) {
 
 		// // TESTING
-		// cout << "\nadded at: " << current_time << endl; 
+		//cout << "\nadded at: " << current_time << endl; 
 		// temp.print_process();
 
 		if (temp.priority < 4) {
@@ -533,14 +542,14 @@ void process_tickets()
 		add_to_queues();
 
 		if (q1.is_empty() && q2.is_empty()) {
-			current_time += time_unit;
+			current_time += TIME_UNIT;
 		}
 
 		// TESTING
-		cout << "\n1. As of: " << current_time << endl;
-		q1.print_queue1();
-		q2.print_queue2();
-		cout << endl;
+		//cout << "\n1. As of: " << current_time << endl;
+		//q1.print_queue1();
+		//q2.print_queue2();
+		//cout << endl;
 
 		process_queues();
 	}
@@ -549,10 +558,10 @@ void process_tickets()
 		process_queues();
 
 		// TESTING
-		cout << "\n2. As of: " << current_time << endl;
-		q1.print_queue1();
-		q2.print_queue2();
-		cout << endl;
+		//cout << "\n2. As of: " << current_time << endl;
+		//q1.print_queue1();
+		//q2.print_queue2();
+		//cout << endl;
 	}
 }
 
@@ -563,7 +572,8 @@ int main(int argc, char *argv[])
 
 	string id, arrival, priority, age, tickets;
 
-	freopen(argv[1], "r", stdin);
+	//freopen(argv[1], "r", stdin);
+	freopen("input.txt", "r", stdin);
 
 	int i = 0;
 
@@ -571,6 +581,8 @@ int main(int argc, char *argv[])
 		input1.push_back(process(id, stoi(arrival), stoi(priority), stoi(age), stoi(tickets), i));
 		i++;
 	}
+
+	fclose(stdin);
 
 	// Sorts input by arrival
 	stable_sort(input1.begin(), input1.end(), arrival_compare);
@@ -582,6 +594,7 @@ int main(int argc, char *argv[])
 	// cout << "printing queue of input" << endl;
 	// print_subqueue(input);
 	// cout << endl;
+	
 
 	cout << "name arrival end ready running waiting" << endl;
 	process_tickets();
